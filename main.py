@@ -22,7 +22,7 @@ def run(args):
     if args.mode == 1:
         result = apply_mode1(img, mire, settings, bord_mire_mm=args.bord_mire)
     elif args.mode == 2:
-        result = apply_mode2(img, settings)
+        result = apply_mode2(img, settings, cadre_mm=args.cadre)
 
     out_path = args.output if args.output else args.image.with_stem(args.image.stem + "_mod").with_suffix(".png")
     result.save(str(out_path))
