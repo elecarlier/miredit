@@ -27,7 +27,8 @@ def parse_args():
         default=1,
         help=(
             "Mode 1: plaque plus grande — ajout bandes de mire haut/bas et traits noirs latéraux. "
-            "Mode 2: modification des colonnes de bord existantes. (1 par défaut)"
+            "Mode 2: modification des colonnes de bord existantes. "
+            "(1 par défaut)"
         )
     )
     parser.add_argument(
@@ -60,5 +61,12 @@ def parse_args():
         default=None,
         help="Chemin du fichier de sortie. Par défaut: <image>_mod.<ext>"
     )
+    parser.add_argument(
+        "-c", "--cadre",
+        type=int,
+        default=5,
+        help="Cadre de mire crée par lenticular suite, 5mm par defaut"
+    )
+
 
     return parser.parse_args()

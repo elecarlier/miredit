@@ -24,7 +24,7 @@ def run(args):
     elif args.mode == 2:
         result = apply_mode2(img, settings)
 
-    out_path = args.output if args.output else args.image.with_stem(args.image.stem + "_mod")
+    out_path = args.output if args.output else args.image.with_stem(args.image.stem + "_mod").with_suffix(".png")
     result.save(str(out_path))
     print(f"Sauvegardé : {out_path}")
 

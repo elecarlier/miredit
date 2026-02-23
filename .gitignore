@@ -1,3 +1,6 @@
 *.tif
 *.png
 *.jpeg
+input/*
+*.psd
+mires_templates/
