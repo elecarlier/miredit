@@ -174,14 +174,31 @@ def apply_mode2(
     """
     Mode 2 — modification du cadre de mire existant (créé par Lenticular Suite).
 
-    Étape actuelle : détection et affichage des positions de toutes les lignes.
-    Les modifications (mettre l'avant-dernière ligne en blanc, etc.) seront
-    ajoutées ici une fois les positions validées.
+    Modifications appliquées :
+    - Met en blanc la première ligne noire complète du bord gauche.
+    - Met en blanc la première ligne noire complète du bord droit.
     """
-    debug_red_scan(img, settings, cadre_mm)
+    # debug_red_scan(img, settings, cadre_mm)
     lines = detect_frame_lines(img, settings, cadre_mm)
     print_frame_analysis(lines, settings)
 
-    # TODO : appliquer les modifications sur l'image
-    return img
+    # Travail sur un tableau numpy pour modifier les pixels directement
+    arr = np.array(img.convert("RGBA"))
+    white = (255, 255, 255, 255)
+
+    # Deuxième ligne noire depuis le bord gauche = black_left[1]
+    # black_left[0] (la plus proche du bord) est laissée intacte.
+    x_start, x_end = lines["black_left"][1]
+    arr[:, x_start:x_end + 1] = white
+    print(f"→ Bord gauche : colonne x={x_start}–{x_end} mise en blanc")
+
+    # Deuxième ligne noire depuis le bord droit = black_right[-2]
+    # black_right[-1] (la plus proche du bord) est laissée intacte.
+    x_start, x_end = lines["black_right"][-2]
+    arr[:, x_start:x_end + 1] = white
+    print(f"→ Bord droit  : colonne x={x_start}–{x_end} mise en blanc")
+
+    
+
+    return Image.fromarray(arr, mode="RGBA")
 
