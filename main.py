@@ -12,7 +12,9 @@ from center_padding import center_padding
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-TEMPLATES_DIR = Path(__file__).parent.parent / "mires_templates"
+
+#TEMPLATES_DIR = Path(__file__).parent.parent / "mires_templates" 
+TEMPLATES_DIR = Path(__file__).parent / "mires_templates"
 
 
 def find_mire(lpi: float, hdpi: int, vdpi: int) -> Path:
@@ -43,6 +45,8 @@ def run(args):
     logger.info(f"Chargement image : {args.image}")
     img = Image.open(args.image)
     logger.debug(f"Taille image : {img.size}")
+    icc_profile = img.info.get("icc_profile")
+    dpi         = img.info.get("dpi", (args.HDPI, args.VDPI))
 
     mire_path = args.mire if args.mire else find_mire(args.LPI, args.HDPI, args.VDPI)
     logger.info(f"Mire : {mire_path}")
@@ -61,7 +65,10 @@ def run(args):
     out_dir  = args.output_dir if args.output_dir else args.image.parent
     out_path = out_dir / out_name
     logger.info(f"Sauvegarde : {out_path}")
-    result.save(str(out_path))
+    save_kwargs = {"dpi": dpi}
+    if icc_profile:
+        save_kwargs["icc_profile"] = icc_profile
+    result.save(str(out_path), **save_kwargs)
     logger.info("Terminé.")
 
 
