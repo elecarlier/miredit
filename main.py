@@ -12,9 +12,13 @@ from center_padding import center_padding
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
+<<<<<<< HEAD
 
 TEMPLATES_DIR = Path(__file__).parent.parent / "mires_templates" 
 
+=======
+TEMPLATES_DIR = Path(__file__).parent.parent / "mires_templates"
+>>>>>>> 4a83b6d (utilise mires_templates partagé à la racine du monorepo)
 
 
 def find_mire(lpi: float, hdpi: int, vdpi: int) -> Path:
