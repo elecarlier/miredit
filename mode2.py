@@ -103,7 +103,8 @@ def detect_frame_lines(
     )
     black_left = _find_runs(black_left_mask)        # positions relatives au bord gauche
 
-#on obtiet un tableau True false true false true false
+    #on obtiet un tableau True false true false true false
+    
     # ── Lignes noires droite ──────────────────────────────────────────────────
     right_row = arr[mid_y, w - cadre_px_h:, :]     # shape (cadre_px_h, 4)
     black_right_mask = (
@@ -175,16 +176,20 @@ def apply_mode2(
     Mode 2 — modification du cadre de mire existant (créé par Lenticular Suite).
 
     Modifications appliquées :
-    - Met en blanc la première ligne noire complète du bord gauche.
-    - Met en blanc la première ligne noire complète du bord droit.
+    - Met en blanc la deuxième ligne noire depuis le bord gauche.
+    - Met en blanc la deuxième ligne noire depuis le bord droit.
+    - Met en noir la ligne rouge du milieu (cadre haut et bas).
     """
     # debug_red_scan(img, settings, cadre_mm)
     lines = detect_frame_lines(img, settings, cadre_mm)
     print_frame_analysis(lines, settings)
 
-    # Travail sur un tableau numpy pour modifier les pixels directement
     arr = np.array(img.convert("RGBA"))
+    h = arr.shape[0]
+    black = (0, 0, 0, 255)
     white = (255, 255, 255, 255)
+
+    cadre_px_v = settings.mm_to_px_v(cadre_mm)
 
     # Deuxième ligne noire depuis le bord gauche = black_left[1]
     # black_left[0] (la plus proche du bord) est laissée intacte.
@@ -198,7 +203,14 @@ def apply_mode2(
     arr[:, x_start:x_end + 1] = white
     print(f"→ Bord droit  : colonne x={x_start}–{x_end} mise en blanc")
 
-    
+    # Ligne rouge du milieu → noir sur toute la hauteur du cadre haut et bas
+    red_lines = lines["red_lines"]
+    n = len(red_lines)
+    mid_idx = n // 2
+    xs, xe = red_lines[mid_idx]
+    arr[0:cadre_px_v, xs:xe + 1] = black
+    arr[h - cadre_px_v:h, xs:xe + 1] = black
+    print(f"→ Rouge milieu [{mid_idx}/{n}] : x={xs}–{xe}  →  noir cadre haut+bas")
 
     return Image.fromarray(arr, mode="RGBA")
 
