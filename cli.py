@@ -68,7 +68,7 @@ def parse_args():
         help="Cadre de mire crée par lenticular suite, 5mm par defaut"
     )
     parser.add_argument(
-        "--bord_image",
+        "--bord_image_mm",
         type=float,
         default=1.0,
         help="[Mode 2] Largeur en mm du trait noir conservé côté image sur les lignes latérales. (1.0 par défaut)"

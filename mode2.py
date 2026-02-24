@@ -171,6 +171,7 @@ def apply_mode2(
     img: Image.Image,
     settings: PrintSettings,
     cadre_mm: float,
+    bord_image_mm: float,
 ) -> Image.Image:
     """
     Mode 2 — modification du cadre de mire existant (créé par Lenticular Suite).
@@ -190,6 +191,7 @@ def apply_mode2(
     white = (255, 255, 255, 255)
 
     cadre_px_v = settings.mm_to_px_v(cadre_mm)
+    bord_px_v = settings.mm_to_px_v(bord_image_mm)
 
     # Deuxième ligne noire depuis le bord gauche = black_left[1]
     # black_left[0] (la plus proche du bord) est laissée intacte.
@@ -208,9 +210,20 @@ def apply_mode2(
     n = len(red_lines)
     mid_idx = n // 2
     xs, xe = red_lines[mid_idx]
-    arr[0:cadre_px_v, xs:xe + 1] = black
+    arr[0:cadre_px_v, xs:xe + 1] = black #+1 car bornes exclue en python
     arr[h - cadre_px_v:h, xs:xe + 1] = black
     print(f"→ Rouge milieu [{mid_idx}/{n}] : x={xs}–{xe}  →  noir cadre haut+bas")
+
+    
+    xs, xe = red_lines[0]
+    arr[cadre_px_v-bord_px_v:cadre_px_v, xs:xe + 1] = black 
+    arr[h - cadre_px_v:h - cadre_px_v + bord_px_v, xs:xe + 1] = black
+
+    xs, xe = red_lines[-1]
+    arr[cadre_px_v-bord_px_v:cadre_px_v, xs:xe + 1] = black 
+    arr[h - cadre_px_v:h - cadre_px_v + bord_px_v, xs:xe + 1] = black
+
+
 
     return Image.fromarray(arr, mode="RGBA")
 
