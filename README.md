@@ -33,7 +33,7 @@ Modifies the existing Lenticular Suite frame in place: erases one black column p
 ## Installation
 
 ```bash
-git clone https://github.com/<you>/miredit.git
+git clone --recurse-submodules <url-du-repo>
 cd miredit
 pip install pillow numpy
 ```
@@ -91,7 +91,7 @@ python main.py -i "image.tif" --mode 2 --LPI 50 -o "result.png" -d /output
 
 ## Mire templates
 
-Templates are auto-selected based on `--LPI`, `--HDPI`, and `--VDPI`:
+Templates are auto-selected based on `--LPI`, `--HDPI`, and `--VDPI`, from the shared folder at the repo root:
 
 ```
 mires_templates/
