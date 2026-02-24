@@ -12,7 +12,7 @@ from center_padding import center_padding
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-TEMPLATES_DIR = Path("mires_templates")
+TEMPLATES_DIR = Path(__file__).parent.parent / "mires_templates"
 
 
 def find_mire(lpi: float, hdpi: int, vdpi: int) -> Path:
