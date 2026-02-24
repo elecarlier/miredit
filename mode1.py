@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 from PIL import Image, ImageDraw
 
 from models import PrintSettings
@@ -46,15 +47,32 @@ def apply_mode1(
     total_w = w + 2 * margin
     total_h = strip_h + h + strip_h
 
+
+
     logger.info(f"Bande mire : {strip_h}px  |  marge : {margin}px  |  canvas : {total_w}x{total_h}px")
 
-    mire_strip = _crop_mire_centered(mire, w, strip_h)
+    mire_strip = _crop_mire_centered(mire, total_w, strip_h)
     logger.debug(f"Mire recadrée : {mire_strip.size}")
 
-    result = Image.new("RGBA", (w, total_h), (0, 0, 0, 0))
-    result.paste(mire_strip, (margin, 0))
-    result.paste(img,        (margin, strip_h))
-    result.paste(mire_strip, (margin, strip_h + h))
+    img_center = margin + w // 2          # centre de l'image dans le canvas
+    mire_x     = img_center - mire_strip.width // 2
+
+    logger.info(f"Centre image dans canvas : {img_center}px  |  paste mire à x={mire_x}px")
+
+
+    mire_strip_full = Image.new("RGBA", (total_w, strip_h), (0, 0, 0, 0))
+
+# Recadrer la mire à sa propre taille (juste pour limiter la hauteur à strip_h)
+    mire_cropped = _crop_mire_centered(mire, mire.width, strip_h)
+
+    # Coller la mire centrée horizontalement
+    x_offset = (total_w - mire_cropped.width) // 2
+    mire_strip_full.paste(mire_cropped, (x_offset, 0), mire_cropped)  # masque alpha
+
+    result = Image.new("RGBA", (total_w, total_h), (0, 0, 0, 0))
+    result.paste(mire_strip_full, (0, 0),            mire_strip_full)
+    result.paste(img,             (margin, strip_h), img)
+    result.paste(mire_strip_full, (0, strip_h + h),  mire_strip_full)
     logger.info("Bandes mire et image collées")
 
     draw = ImageDraw.Draw(result)

@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image
 
 from models import PrintSettings
+from center_padding import is_red
 
 logger = logging.getLogger(__name__)
 
@@ -98,22 +99,23 @@ def detect_frame_lines(
     # On prend les pixels de la tranche horizontale à mid_y, dans les
     # cadre_px_h premières colonnes.
     # Un pixel est "noir" si R < 30 et G < 30 et B < 30.
-    left_row = arr[mid_y, :cadre_px_h, :]          # shape (cadre_px_h, 4)
+    left_row = arr[mid_y, :cadre_px_h, :3].astype(int)   # shape (cadre_px_h, 3)
     black_left_mask = (
-        (left_row[:, 0] < 30) &
-        (left_row[:, 1] < 30) &
-        (left_row[:, 2] < 30)
+        (left_row.max(axis=1) - left_row.min(axis=1) < 10) &  # canaux égaux (gris neutre)
+        (left_row.max(axis=1) < 200)                           # pas blanc
     )
     black_left = _find_runs(black_left_mask)        # positions relatives au bord gauche
 
     #on obtiet un tableau True false true false true false
-    
+
     # ── Lignes noires droite ──────────────────────────────────────────────────
-    right_row = arr[mid_y, w - cadre_px_h:, :]     # shape (cadre_px_h, 4)
+    '''  - max(R,G,B) - min(R,G,B) < 10 → les 3 canaux sont quasi-égaux (pixel neutre, pas coloré)                                                       
+         - max(R,G,B) < 200 → assez sombre pour ne pas être du blanc  '''
+
+    right_row = arr[mid_y, w - cadre_px_h:, :3].astype(int)   # shape (cadre_px_h, 3)
     black_right_mask = (
-        (right_row[:, 0] < 30) &
-        (right_row[:, 1] < 30) &
-        (right_row[:, 2] < 30)
+        (right_row.max(axis=1) - right_row.min(axis=1) < 10) &  # canaux égaux (gris neutre)
+        (right_row.max(axis=1) < 200)                            # pas blanc
     )
     
     # On convertit en coordonnées absolues (origine = bord gauche de l'image)
@@ -125,12 +127,8 @@ def detect_frame_lines(
     # horizontal de l'image, dans la zone du cadre haut.
     # On scanne horizontalement à mi-hauteur du cadre pour trouver leurs positions x.
     # Un pixel est "rouge" si R > 150 et G < 30 et B < 30 (rouge = R=219, G=0, B=0).
-    top_row = arr[mid_cadre_y, :, :]        # toute la largeur à mi-hauteur du cadre
-    red_mask = (
-        (top_row[:, 0] > 150) &
-        (top_row[:, 1] <  30) &
-        (top_row[:, 2] <  30)
-    )
+    top_row = arr[mid_cadre_y, :, :]               # toute la largeur à mi-hauteur du cadre
+    red_mask = is_red(top_row)
     red_lines = _find_runs(red_mask)        # positions en x (coordonnées absolues)
 
     return {
@@ -179,7 +177,7 @@ def apply_mode2(
     - Met en blanc la deuxième ligne noire depuis le bord droit.
     - Met en noir la ligne rouge du milieu (cadre haut et bas).
     """
-    # debug_red_scan(img, settings, cadre_mm)
+    debug_red_scan(img, settings, cadre_mm)
     logger.info("Détection des lignes du cadre")
     lines = detect_frame_lines(img, settings, cadre_mm)
     logger.debug(
@@ -234,4 +232,3 @@ def apply_mode2(
 
 
     return Image.fromarray(arr, mode="RGBA")
-

@@ -7,6 +7,7 @@ from cli import parse_args
 from models import PrintSettings
 from mode1 import apply_mode1
 from mode2 import apply_mode2
+from center_padding import center_padding
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -47,6 +48,9 @@ def run(args):
     logger.info(f"Mire : {mire_path}")
     mire = Image.open(mire_path)
 
+    debug_path = (args.output_dir if args.output_dir else args.image.parent) / (args.image.stem + "_centered.png")
+    img = center_padding(img, settings, debug_path=debug_path)
+
     logger.info(f"Mode {args.mode}")
     if args.mode == 1:
         result = apply_mode1(img, mire, settings, bord_mire_mm=args.bord_mire)
@@ -59,7 +63,6 @@ def run(args):
     logger.info(f"Sauvegarde : {out_path}")
     result.save(str(out_path))
     logger.info("Terminé.")
-
 
 
 def main():

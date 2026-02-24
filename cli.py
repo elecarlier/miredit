@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument(
         "--LPI",
         type=float,
-        default=40.0,
+        default=50.0,
         help="Linéature de la plaque en lignes/pouce. (40.0 par défaut)"
     )
     parser.add_argument(
