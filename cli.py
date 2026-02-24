@@ -17,8 +17,8 @@ def parse_args():
     parser.add_argument(
         "-m", "--mire",
         type=Path,
-        default=Path("mires_templates/720x360/40.png"),
-        help="Template de mire à utiliser. (mires_templates/720x360/40.png par défaut)"
+        default=None,
+        help="Template de mire à utiliser. Par défaut: détecté automatiquement depuis mires_templates/{HDPI}x{VDPI}/{LPI}.png"
     )
     parser.add_argument(
         "--mode",
@@ -57,9 +57,15 @@ def parse_args():
     )
     parser.add_argument(
         "-o", "--output",
+        type=str,
+        default=None,
+        help="Nom du fichier de sortie (sans chemin). Par défaut: <image>_mod.png"
+    )
+    parser.add_argument(
+        "-d", "--output_dir",
         type=Path,
         default=None,
-        help="Chemin du fichier de sortie. Par défaut: <image>_mod.<ext>"
+        help="Dossier de sortie. Par défaut: même dossier que l'image d'entrée."
     )
     parser.add_argument(
         "-c", "--cadre",
@@ -68,10 +74,10 @@ def parse_args():
         help="Cadre de mire crée par lenticular suite, 5mm par defaut"
     )
     parser.add_argument(
-        "--bord_image_mm",
+        "--trait_noir_mm",
         type=float,
         default=1.0,
-        help="[Mode 2] Largeur en mm du trait noir conservé côté image sur les lignes latérales. (1.0 par défaut)"
+        help="[Mode 2] Hauteur en mm du trait noir sur les lignes rouges extérieures côté image (cadre haut et bas). (1.0 par défaut)"
     )
 
     return parser.parse_args()

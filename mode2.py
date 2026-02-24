@@ -1,7 +1,10 @@
+import logging
 import numpy as np
 from PIL import Image
 
 from models import PrintSettings
+
+logger = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────────
@@ -138,29 +141,24 @@ def detect_frame_lines(
 
 
 def print_frame_analysis(lines: dict, settings: PrintSettings) -> None:
-    """Affiche les positions des lignes détectées, en px et en mm."""
+    """Log les positions des lignes détectées, en px et en mm (niveau DEBUG)."""
 
     def px_to_mm_h(px): return px * 25.4 / settings.hdpi
-    def px_to_mm_v(px): return px * 25.4 / settings.vdpi
 
-    print("\n=== ANALYSE DU CADRE DE MIRE ===\n")
-
-    print(f"── Lignes noires — bord GAUCHE ({len(lines['black_left'])} lignes) ──")
+    logger.debug(f"── Lignes noires GAUCHE ({len(lines['black_left'])}) ──")
     for i, (s, e) in enumerate(lines["black_left"]):
         w = e - s + 1
-        print(f"  [{i}] x={s}–{e} px  |  largeur={w} px ({px_to_mm_h(w):.2f} mm)  |  bord à {px_to_mm_h(s):.2f} mm du bord gauche")
+        logger.debug(f"  [{i}] x={s}–{e} px  |  {px_to_mm_h(w):.2f} mm  |  à {px_to_mm_h(s):.2f} mm du bord")
 
-    print(f"\n── Lignes noires — bord DROIT ({len(lines['black_right'])} lignes) ──")
+    logger.debug(f"── Lignes noires DROITE ({len(lines['black_right'])}) ──")
     for i, (s, e) in enumerate(lines["black_right"]):
         w = e - s + 1
-        print(f"  [{i}] x={s}–{e} px  |  largeur={w} px ({px_to_mm_h(w):.2f} mm)  |  bord à {px_to_mm_h(s):.2f} mm du bord gauche")
+        logger.debug(f"  [{i}] x={s}–{e} px  |  {px_to_mm_h(w):.2f} mm  |  à {px_to_mm_h(s):.2f} mm du bord")
 
-    print(f"\n── Lignes rouges — cadre HAUT ({len(lines['red_lines'])} traits verticaux) ──")
+    logger.debug(f"── Lignes rouges ({len(lines['red_lines'])}) ──")
     for i, (s, e) in enumerate(lines["red_lines"]):
         lw = e - s + 1
-        print(f"  [{i}] x={s}–{e} px  |  largeur={lw} px ({px_to_mm_h(lw):.2f} mm)  |  centre à {px_to_mm_h((s+e)//2):.2f} mm du bord gauche")
-
-    print()
+        logger.debug(f"  [{i}] x={s}–{e} px  |  {px_to_mm_h(lw):.2f} mm  |  centre à {px_to_mm_h((s+e)//2):.2f} mm")
 
 
 # ─────────────────────────────────────────────
@@ -171,7 +169,7 @@ def apply_mode2(
     img: Image.Image,
     settings: PrintSettings,
     cadre_mm: float,
-    bord_image_mm: float,
+    trait_noir_mm: float,
 ) -> Image.Image:
     """
     Mode 2 — modification du cadre de mire existant (créé par Lenticular Suite).
@@ -182,7 +180,13 @@ def apply_mode2(
     - Met en noir la ligne rouge du milieu (cadre haut et bas).
     """
     # debug_red_scan(img, settings, cadre_mm)
+    logger.info("Détection des lignes du cadre")
     lines = detect_frame_lines(img, settings, cadre_mm)
+    logger.debug(
+        f"Lignes détectées — noir gauche: {len(lines['black_left'])}, "
+        f"noir droit: {len(lines['black_right'])}, "
+        f"rouge: {len(lines['red_lines'])}"
+    )
     print_frame_analysis(lines, settings)
 
     arr = np.array(img.convert("RGBA"))
@@ -191,37 +195,41 @@ def apply_mode2(
     white = (255, 255, 255, 255)
 
     cadre_px_v = settings.mm_to_px_v(cadre_mm)
-    bord_px_v = settings.mm_to_px_v(bord_image_mm)
+    bord_px_v = settings.mm_to_px_v(trait_noir_mm)
 
     # Deuxième ligne noire depuis le bord gauche = black_left[1]
     # black_left[0] (la plus proche du bord) est laissée intacte.
     x_start, x_end = lines["black_left"][1]
     arr[:, x_start:x_end + 1] = white
-    print(f"→ Bord gauche : colonne x={x_start}–{x_end} mise en blanc")
+    logger.info(f"Bord gauche : colonne x={x_start}–{x_end} mise en blanc")
 
     # Deuxième ligne noire depuis le bord droit = black_right[-2]
     # black_right[-1] (la plus proche du bord) est laissée intacte.
     x_start, x_end = lines["black_right"][-2]
     arr[:, x_start:x_end + 1] = white
-    print(f"→ Bord droit  : colonne x={x_start}–{x_end} mise en blanc")
+    logger.info(f"Bord droit  : colonne x={x_start}–{x_end} mise en blanc")
 
     # Ligne rouge du milieu → noir sur toute la hauteur du cadre haut et bas
     red_lines = lines["red_lines"]
     n = len(red_lines)
+    if n == 0:
+        logger.warning("Aucune ligne rouge détectée — vérifier le cadre et les seuils de couleur")
+        return Image.fromarray(arr, mode="RGBA")
     mid_idx = n // 2
     xs, xe = red_lines[mid_idx]
-    arr[0:cadre_px_v, xs:xe + 1] = black #+1 car bornes exclue en python
+    arr[0:cadre_px_v, xs:xe + 1] = black
     arr[h - cadre_px_v:h, xs:xe + 1] = black
-    print(f"→ Rouge milieu [{mid_idx}/{n}] : x={xs}–{xe}  →  noir cadre haut+bas")
+    logger.info(f"Rouge milieu [{mid_idx}/{n}] : x={xs}–{xe}  →  noir cadre haut+bas")
 
-    
     xs, xe = red_lines[0]
-    arr[cadre_px_v-bord_px_v:cadre_px_v, xs:xe + 1] = black 
+    arr[cadre_px_v - bord_px_v:cadre_px_v, xs:xe + 1] = black
     arr[h - cadre_px_v:h - cadre_px_v + bord_px_v, xs:xe + 1] = black
+    logger.info(f"Rouge [0] : x={xs}–{xe}  →  {trait_noir_mm}mm noir côté image")
 
     xs, xe = red_lines[-1]
-    arr[cadre_px_v-bord_px_v:cadre_px_v, xs:xe + 1] = black 
+    arr[cadre_px_v - bord_px_v:cadre_px_v, xs:xe + 1] = black
     arr[h - cadre_px_v:h - cadre_px_v + bord_px_v, xs:xe + 1] = black
+    logger.info(f"Rouge [-1] : x={xs}–{xe}  →  {trait_noir_mm}mm noir côté image")
 
 
 

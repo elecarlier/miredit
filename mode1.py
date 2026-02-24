@@ -1,6 +1,9 @@
+import logging
 from PIL import Image, ImageDraw
 
 from models import PrintSettings
+
+logger = logging.getLogger(__name__)
 
 
 def _crop_mire_centered(mire: Image.Image, target_w: int, target_h: int) -> Image.Image:
@@ -37,43 +40,39 @@ def apply_mode1(
     mire = mire.convert("RGBA")
 
     w, h = img.size
-    strip_h = settings.mm_to_px_v(bord_mire_mm) #selon la resolution verticale
-    margin = settings.mm_to_px_h(3.0) #later -> change 3.00 ? (2+1)
+    strip_h = settings.mm_to_px_v(bord_mire_mm)
+    margin = settings.mm_to_px_h(3.0)
 
     total_w = w + 2 * margin
     total_h = strip_h + h + strip_h
- 
+
+    logger.info(f"Bande mire : {strip_h}px  |  marge : {margin}px  |  canvas : {total_w}x{total_h}px")
+
     mire_strip = _crop_mire_centered(mire, w, strip_h)
+    logger.debug(f"Mire recadrée : {mire_strip.size}")
 
-
- 
-    result = Image.new("RGBA", (w, total_h), (0, 0, 0, 0)) #crée une toile vierge : même largeur que l'image originale mais une hauteur augmentée des deux bandes de mire (une en haut, une en bas)
- 
+    result = Image.new("RGBA", (w, total_h), (0, 0, 0, 0))
     result.paste(mire_strip, (margin, 0))
     result.paste(img,        (margin, strip_h))
     result.paste(mire_strip, (margin, strip_h + h))
+    logger.info("Bandes mire et image collées")
 
     draw = ImageDraw.Draw(result)
-    black = (0, 0, 0, 255) 
-    red = (255, 0, 0, 255) 
+    black = (0, 0, 0, 255)
+    red = (255, 0, 0, 255)
+
+    x1 = margin - settings.mm_to_px_h(2.0)
+    w1 = settings.line_frac_px(1 / 4)
+    x2 = margin - settings.mm_to_px_h(1.0)
+    w2 = settings.line_frac_px(1 / 6)
+
+    logger.debug(f"Traits repérage — x1={x1} w1={w1}px  |  x2={x2} w2={w2}px")
 
 
-    x1 = margin - settings.mm_to_px_h(2.0) #position du bord gauche du trait 1 : 2mm à gauche de l'image
-    w1 = settings.line_frac_px(1 / 4) #épaisseur du trait 1
-    x2 = margin - settings.mm_to_px_h(1.0) #position du bord gauche du trait 2 : 1mm à gauche de l'image
-    w2 = settings.line_frac_px(1 / 6) #épaisseur du trait 2
-
-
-    #hauteur totale : y_haut = 0 et y_bas=total_h - 1
-    # draw.rectangle([x1,                0, x1 + w1 - 1,           total_h - 1], fill=black)
-    # draw.rectangle([x2,                0, x2 + w2 - 1,           total_h - 1], fill=black)
-    # draw.rectangle([total_w - x1 - w1, 0, total_w - x1 - 1,      total_h - 1], fill=black)
-    # draw.rectangle([total_w - x2 - w2, 0, total_w - x2 - 1,      total_h - 1], fill=black)
-
-    #en rouge pour pouvoir le visualiser 
-    draw.rectangle([x1,                0, x1 + w1 - 1,           total_h - 1], fill=red)
-    draw.rectangle([x2,                0, x2 + w2 - 1,           total_h - 1], fill=red)
-    draw.rectangle([total_w - x1 - w1, 0, total_w - x1 - 1,      total_h - 1], fill=red)
-    draw.rectangle([total_w - x2 - w2, 0, total_w - x2 - 1,      total_h - 1], fill=red)
+    draw.rectangle([x1,                0, x1 + w1 - 1,           total_h - 1], fill=black)
+    draw.rectangle([x2,                0, x2 + w2 - 1,           total_h - 1], fill=black)
+    draw.rectangle([total_w - x1 - w1, 0, total_w - x1 - 1,      total_h - 1], fill=black)
+    draw.rectangle([total_w - x2 - w2, 0, total_w - x2 - 1,      total_h - 1], fill=black)
+    logger.info("Traits de repérage dessinés")
 
     return result
