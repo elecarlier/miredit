@@ -70,8 +70,8 @@ def parse_args():
     parser.add_argument(
         "-c", "--cadre",
         type=int,
-        default=5,
-        help="Cadre de mire crée par lenticular suite, 5mm par defaut"
+        default=4,
+        help="Cadre de mire crée par lenticular suite, 4mm par defaut"
     )
     parser.add_argument(
         "--trait_noir_mm",
