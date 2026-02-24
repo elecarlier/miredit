@@ -33,7 +33,7 @@ Modifies the existing Lenticular Suite frame in place: erases one black column p
 ## Installation
 
 ```bash
-git clone --recurse-submodules <url-du-repo>
+git clone --recurse-submodules https://github.com/elecarlier/print_calibrator.git
 cd miredit
 pip install pillow numpy
 ```
