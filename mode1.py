@@ -33,6 +33,7 @@ def apply_mode1(
     mire: Image.Image,
     settings: PrintSettings,
     bord_mire_mm: float,
+    trait_noir_mm: float = 0.0,
 ) -> Image.Image:
     """
     Mode 1 — plaque physique plus grande que l'image lenticulaire.
@@ -92,5 +93,10 @@ def apply_mode1(
     draw.rectangle([total_w - x1 - w1, 0, total_w - x1 - 1,      total_h - 1], fill=black)
     draw.rectangle([total_w - x2 - w2, 0, total_w - x2 - 1,      total_h - 1], fill=black)
     logger.debug("Traits de repérage dessinés")
+
+    if trait_noir_mm > 0:
+        bord_px = settings.mm_to_px_v(trait_noir_mm)
+        draw.rectangle([0, strip_h - bord_px, total_w - 1, strip_h - 1],         fill=black)
+        draw.rectangle([0, strip_h + h,       total_w - 1, strip_h + h + bord_px - 1], fill=black)
 
     return result
