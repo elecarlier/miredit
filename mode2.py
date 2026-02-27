@@ -159,6 +159,59 @@ def print_frame_analysis(lines: dict, settings: PrintSettings) -> None:
 
 
 # ─────────────────────────────────────────────
+# Modification lignes rouges (partagée modes 2 et 3)
+# ─────────────────────────────────────────────
+
+def apply_red_lines_noir(
+    img: Image.Image,
+    settings: PrintSettings,
+    cadre_mm: float,
+    trait_noir_mm: float,
+) -> Image.Image:
+    """Met en noir la ligne rouge du milieu et ajoute un trait noir sur les lignes rouges extérieures."""
+    debug_red_scan(img, settings, cadre_mm)
+    logger.debug("Détection des lignes du cadre")
+    lines = detect_frame_lines(img, settings, cadre_mm)
+    logger.debug(
+        f"Lignes détectées — noir gauche: {len(lines['black_left'])}, "
+        f"noir droit: {len(lines['black_right'])}, "
+        f"rouge: {len(lines['red_lines'])}"
+    )
+    print_frame_analysis(lines, settings)
+
+    arr = np.array(img.convert("RGBA"))
+    h = arr.shape[0]
+    black = (0, 0, 0, 255)
+
+    cadre_px_v = settings.mm_to_px_v(cadre_mm)
+    bord_px_v = settings.mm_to_px_v(trait_noir_mm)
+
+    red_lines = lines["red_lines"]
+    n = len(red_lines)
+    if n == 0:
+        logger.warning("Aucune ligne rouge détectée — vérifier le cadre et les seuils de couleur")
+        return Image.fromarray(arr, mode="RGBA")
+
+    mid_idx = n // 2
+    xs, xe = red_lines[mid_idx]
+    arr[0:cadre_px_v, xs:xe + 1] = black
+    arr[h - cadre_px_v:h, xs:xe + 1] = black
+    logger.debug(f"Rouge milieu [{mid_idx}/{n}] : x={xs}–{xe}  →  noir cadre haut+bas")
+
+    xs, xe = red_lines[0]
+    arr[cadre_px_v - bord_px_v:cadre_px_v, xs:xe + 1] = black
+    arr[h - cadre_px_v:h - cadre_px_v + bord_px_v, xs:xe + 1] = black
+    logger.debug(f"Rouge [0] : x={xs}–{xe}  →  {trait_noir_mm}mm noir côté image")
+
+    xs, xe = red_lines[-1]
+    arr[cadre_px_v - bord_px_v:cadre_px_v, xs:xe + 1] = black
+    arr[h - cadre_px_v:h - cadre_px_v + bord_px_v, xs:xe + 1] = black
+    logger.debug(f"Rouge [-1] : x={xs}–{xe}  →  {trait_noir_mm}mm noir côté image")
+
+    return Image.fromarray(arr, mode="RGBA")
+
+
+# ─────────────────────────────────────────────
 # Point d'entrée Mode 2
 # ─────────────────────────────────────────────
 
@@ -176,58 +229,17 @@ def apply_mode2(
     - Met en blanc la deuxième ligne noire depuis le bord droit.
     - Met en noir la ligne rouge du milieu (cadre haut et bas).
     """
-    debug_red_scan(img, settings, cadre_mm)
-    logger.debug("Détection des lignes du cadre")
     lines = detect_frame_lines(img, settings, cadre_mm)
-    logger.debug(
-        f"Lignes détectées — noir gauche: {len(lines['black_left'])}, "
-        f"noir droit: {len(lines['black_right'])}, "
-        f"rouge: {len(lines['red_lines'])}"
-    )
-    print_frame_analysis(lines, settings)
-
     arr = np.array(img.convert("RGBA"))
-    h = arr.shape[0]
-    black = (0, 0, 0, 255)
     white = (255, 255, 255, 255)
 
-    cadre_px_v = settings.mm_to_px_v(cadre_mm)
-    bord_px_v = settings.mm_to_px_v(trait_noir_mm)
-
-    # Deuxième ligne noire depuis le bord gauche = black_left[1]
-    # black_left[0] (la plus proche du bord) est laissée intacte.
     x_start, x_end = lines["black_left"][1]
     arr[:, x_start:x_end + 1] = white
     logger.debug(f"Bord gauche : colonne x={x_start}–{x_end} mise en blanc")
 
-    # Deuxième ligne noire depuis le bord droit = black_right[-2]
-    # black_right[-1] (la plus proche du bord) est laissée intacte.
     x_start, x_end = lines["black_right"][-2]
     arr[:, x_start:x_end + 1] = white
     logger.debug(f"Bord droit  : colonne x={x_start}–{x_end} mise en blanc")
 
-    # Ligne rouge du milieu → noir sur toute la hauteur du cadre haut et bas
-    red_lines = lines["red_lines"]
-    n = len(red_lines)
-    if n == 0:
-        logger.warning("Aucune ligne rouge détectée — vérifier le cadre et les seuils de couleur")
-        return Image.fromarray(arr, mode="RGBA")
-    mid_idx = n // 2
-    xs, xe = red_lines[mid_idx]
-    arr[0:cadre_px_v, xs:xe + 1] = black
-    arr[h - cadre_px_v:h, xs:xe + 1] = black
-    logger.debug(f"Rouge milieu [{mid_idx}/{n}] : x={xs}–{xe}  →  noir cadre haut+bas")
-
-    xs, xe = red_lines[0]
-    arr[cadre_px_v - bord_px_v:cadre_px_v, xs:xe + 1] = black
-    arr[h - cadre_px_v:h - cadre_px_v + bord_px_v, xs:xe + 1] = black
-    logger.debug(f"Rouge [0] : x={xs}–{xe}  →  {trait_noir_mm}mm noir côté image")
-
-    xs, xe = red_lines[-1]
-    arr[cadre_px_v - bord_px_v:cadre_px_v, xs:xe + 1] = black
-    arr[h - cadre_px_v:h - cadre_px_v + bord_px_v, xs:xe + 1] = black
-    logger.debug(f"Rouge [-1] : x={xs}–{xe}  →  {trait_noir_mm}mm noir côté image")
-
-
-
-    return Image.fromarray(arr, mode="RGBA")
+    img_modified = Image.fromarray(arr, mode="RGBA")
+    return apply_red_lines_noir(img_modified, settings, cadre_mm, trait_noir_mm)
