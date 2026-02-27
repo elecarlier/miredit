@@ -49,7 +49,7 @@ def apply_mode1(
 
 
 
-    logger.info(f"Bande mire : {strip_h}px  |  marge : {margin}px  |  canvas : {total_w}x{total_h}px")
+    logger.debug(f"Bande mire : {strip_h}px  |  marge : {margin}px  |  canvas : {total_w}x{total_h}px")
 
     mire_strip = _crop_mire_centered(mire, total_w, strip_h)
     logger.debug(f"Mire recadrée : {mire_strip.size}")
@@ -57,7 +57,7 @@ def apply_mode1(
     img_center = margin + w // 2          # centre de l'image dans le canvas
     mire_x     = img_center - mire_strip.width // 2
 
-    logger.info(f"Centre image dans canvas : {img_center}px  |  paste mire à x={mire_x}px")
+    logger.debug(f"Centre image dans canvas : {img_center}px  |  paste mire à x={mire_x}px")
 
 
     mire_strip_full = Image.new("RGBA", (total_w, strip_h), (0, 0, 0, 0))
@@ -73,7 +73,7 @@ def apply_mode1(
     result.paste(mire_strip_full, (0, 0),            mire_strip_full)
     result.paste(img,             (margin, strip_h), img)
     result.paste(mire_strip_full, (0, strip_h + h),  mire_strip_full)
-    logger.info("Bandes mire et image collées")
+    logger.debug("Bandes mire et image collées")
 
     draw = ImageDraw.Draw(result)
     black = (0, 0, 0, 255)
@@ -91,6 +91,6 @@ def apply_mode1(
     draw.rectangle([x2,                0, x2 + w2 - 1,           total_h - 1], fill=black)
     draw.rectangle([total_w - x1 - w1, 0, total_w - x1 - 1,      total_h - 1], fill=black)
     draw.rectangle([total_w - x2 - w2, 0, total_w - x2 - 1,      total_h - 1], fill=black)
-    logger.info("Traits de repérage dessinés")
+    logger.debug("Traits de repérage dessinés")
 
     return result
