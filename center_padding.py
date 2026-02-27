@@ -42,8 +42,8 @@ def find_middle_red_center(img: Image.Image, settings: PrintSettings) -> int | N
     ends   = np.where( padded[:-1] & ~padded[1:])[0] - 1
     runs = list(zip(starts.tolist(), ends.tolist()))
 
-    logger.info(f"Lignes rouges détectées ({len(runs)}) : {runs}")
-    logger.info(f"Largeur image : {img.width}px  |  centre image : {img.width // 2}px")
+    logger.debug(f"Lignes rouges détectées ({len(runs)}) : {runs}")
+    logger.debug(f"Largeur image : {img.width}px  |  centre image : {img.width // 2}px")
 
     if not runs:
         return None
@@ -51,7 +51,7 @@ def find_middle_red_center(img: Image.Image, settings: PrintSettings) -> int | N
     mid_idx = len(runs) // 2
     xs, xe = runs[mid_idx]
     center = (xs + xe) // 2
-    logger.info(f"Ligne rouge du milieu [idx={mid_idx}] : x={xs}–{xe}  |  centre={center}px")
+    logger.debug(f"Ligne rouge du milieu [idx={mid_idx}] : x={xs}–{xe}  |  centre={center}px")
     return center
 
 
@@ -77,7 +77,7 @@ def center_padding(
     mid = image_center(img)
 
     if red_center == mid:
-        logger.info("Ligne rouge déjà centrée, pas de padding nécessaire")
+        logger.debug("Ligne rouge déjà centrée, pas de padding nécessaire")
         return img
 
     arr = np.array(img.convert("RGBA"))
@@ -94,7 +94,7 @@ def center_padding(
     new_arr = np.zeros((h, new_w, 4), dtype=arr.dtype)
     new_arr[:, pad_left:pad_left + w, :] = arr
 
-    logger.info(
+    logger.debug(
         f"Centrage ligne rouge milieu : x={red_center}, centre image={mid}  |  "
         f"pad_left={pad_left}px  pad_right={pad_right}px  → nouvelle largeur={new_w}px"
     )
@@ -107,6 +107,6 @@ def center_padding(
         cx = image_center(debug_img)
         draw.line([(cx, 0), (cx, debug_img.height - 1)], fill=(0, 255, 0, 255), width=3)
         debug_img.save(str(debug_path))
-        logger.info(f"Image centrée sauvegardée : {debug_path}  (trait vert = centre x={cx})")
+        logger.debug(f"Image centrée sauvegardée : {debug_path}  (trait vert = centre x={cx})")
 
     return result

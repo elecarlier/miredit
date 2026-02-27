@@ -40,16 +40,16 @@ def run(args):
     Image.MAX_IMAGE_PIXELS = None
 
     settings = PrintSettings(lpi=args.LPI, hdpi=args.HDPI, vdpi=args.VDPI)
-    logger.debug(f"Paramètres : LPI={args.LPI}, HDPI={args.HDPI}, VDPI={args.VDPI}")
 
-    logger.info(f"Chargement image : {args.image}")
+
+    logger.debug(f"Chargement image : {args.image}")
     img = Image.open(args.image)
     logger.debug(f"Taille image : {img.size}")
     icc_profile = img.info.get("icc_profile")
     dpi         = img.info.get("dpi", (args.HDPI, args.VDPI))
 
     mire_path = args.mire if args.mire else find_mire(args.LPI, args.HDPI, args.VDPI)
-    logger.info(f"Mire : {mire_path}")
+    logger.debug(f"Mire : {mire_path}")
     mire = Image.open(mire_path)
 
     debug_path = (args.output_dir if args.output_dir else args.image.parent) / (args.image.stem + "_centered.png")
@@ -70,7 +70,7 @@ def run(args):
     if icc_profile:
         save_kwargs["icc_profile"] = icc_profile
     result.save(str(out_path), **save_kwargs)
-    logger.info("Terminé.")
+    logger.debug("Terminé.")
 
 
 def main():

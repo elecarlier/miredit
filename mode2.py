@@ -54,14 +54,13 @@ def debug_red_scan(img: Image.Image, settings: PrintSettings, cadre_mm: float) -
     is_black = (row[:, 0] <  30) & (row[:, 1] <  30) & (row[:, 2] <  30)
     colored_xs = np.where(~is_white & ~is_black)[0]
 
-    print(f"\n=== DEBUG scan rouge — ligne y={mid_cadre_y} (mi-hauteur cadre haut) ===")
+    logger.debug(f"=== DEBUG scan rouge — ligne y={mid_cadre_y} (mi-hauteur cadre haut) ===")
     if len(colored_xs) == 0:
-        print("  Aucun pixel coloré trouvé.")
+        logger.debug("  Aucun pixel coloré trouvé.")
     else:
         for x in colored_xs:
             r, g, b, a = arr[mid_cadre_y, x]
-            print(f"  x={x:5d}  R={r:3d} G={g:3d} B={b:3d} A={a:3d}")
-    print()
+            logger.debug(f"  x={x:5d}  R={r:3d} G={g:3d} B={b:3d} A={a:3d}")
 
 
 def detect_frame_lines(
@@ -178,7 +177,7 @@ def apply_mode2(
     - Met en noir la ligne rouge du milieu (cadre haut et bas).
     """
     debug_red_scan(img, settings, cadre_mm)
-    logger.info("Détection des lignes du cadre")
+    logger.debug("Détection des lignes du cadre")
     lines = detect_frame_lines(img, settings, cadre_mm)
     logger.debug(
         f"Lignes détectées — noir gauche: {len(lines['black_left'])}, "
@@ -199,13 +198,13 @@ def apply_mode2(
     # black_left[0] (la plus proche du bord) est laissée intacte.
     x_start, x_end = lines["black_left"][1]
     arr[:, x_start:x_end + 1] = white
-    logger.info(f"Bord gauche : colonne x={x_start}–{x_end} mise en blanc")
+    logger.debug(f"Bord gauche : colonne x={x_start}–{x_end} mise en blanc")
 
     # Deuxième ligne noire depuis le bord droit = black_right[-2]
     # black_right[-1] (la plus proche du bord) est laissée intacte.
     x_start, x_end = lines["black_right"][-2]
     arr[:, x_start:x_end + 1] = white
-    logger.info(f"Bord droit  : colonne x={x_start}–{x_end} mise en blanc")
+    logger.debug(f"Bord droit  : colonne x={x_start}–{x_end} mise en blanc")
 
     # Ligne rouge du milieu → noir sur toute la hauteur du cadre haut et bas
     red_lines = lines["red_lines"]
@@ -217,17 +216,17 @@ def apply_mode2(
     xs, xe = red_lines[mid_idx]
     arr[0:cadre_px_v, xs:xe + 1] = black
     arr[h - cadre_px_v:h, xs:xe + 1] = black
-    logger.info(f"Rouge milieu [{mid_idx}/{n}] : x={xs}–{xe}  →  noir cadre haut+bas")
+    logger.debug(f"Rouge milieu [{mid_idx}/{n}] : x={xs}–{xe}  →  noir cadre haut+bas")
 
     xs, xe = red_lines[0]
     arr[cadre_px_v - bord_px_v:cadre_px_v, xs:xe + 1] = black
     arr[h - cadre_px_v:h - cadre_px_v + bord_px_v, xs:xe + 1] = black
-    logger.info(f"Rouge [0] : x={xs}–{xe}  →  {trait_noir_mm}mm noir côté image")
+    logger.debug(f"Rouge [0] : x={xs}–{xe}  →  {trait_noir_mm}mm noir côté image")
 
     xs, xe = red_lines[-1]
     arr[cadre_px_v - bord_px_v:cadre_px_v, xs:xe + 1] = black
     arr[h - cadre_px_v:h - cadre_px_v + bord_px_v, xs:xe + 1] = black
-    logger.info(f"Rouge [-1] : x={xs}–{xe}  →  {trait_noir_mm}mm noir côté image")
+    logger.debug(f"Rouge [-1] : x={xs}–{xe}  →  {trait_noir_mm}mm noir côté image")
 
 
 
