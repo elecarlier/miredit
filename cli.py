@@ -23,11 +23,12 @@ def parse_args():
     parser.add_argument(
         "--mode",
         type=int,
-        choices=[1, 2],
+        choices=[1, 2, 3],
         default=1,
         help=(
             "Mode 1: plaque plus grande — ajout bandes de mire haut/bas et traits noirs latéraux. "
-            "Mode 2: modification des colonnes de bord existantes. "
+            "Mode 2: modification des colonnes de bord existantes. " \
+            "Mode 3: mode 1 + modification des bords"
             "(1 par défaut)"
         )
     )
@@ -77,7 +78,7 @@ def parse_args():
         "--trait_noir_mm",
         type=float,
         default=1.0,
-        help="[Mode 2] Hauteur en mm du trait noir sur les lignes rouges extérieures côté image (cadre haut et bas). (1.0 par défaut)"
+        help="Hauteur en mm du trait noir à la jonction mire/image (modes 1 et 2). (1.0 par défaut)"
     )
 
     return parser.parse_args()

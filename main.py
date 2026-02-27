@@ -6,7 +6,7 @@ from PIL import Image
 from cli import parse_args
 from models import PrintSettings
 from mode1 import apply_mode1
-from mode2 import apply_mode2
+from mode2 import apply_mode2, apply_red_lines_noir
 from center_padding import center_padding
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -57,11 +57,15 @@ def run(args):
 
     logger.info(f"Mode {args.mode}")
     if args.mode == 1:
-        result = apply_mode1(img, mire, settings, bord_mire_mm=args.bord_mire)
+        result = apply_mode1(img, mire, settings, bord_mire_mm=args.bord_mire, trait_noir_mm=args.trait_noir_mm)
         out_name = args.output if args.output else (args.image.stem + "_HC.png")
     elif args.mode == 2:
         result = apply_mode2(img, settings, cadre_mm=args.cadre, trait_noir_mm=args.trait_noir_mm)
         out_name = args.output if args.output else (args.image.stem + "_mod.png")
+    elif args.mode == 3:
+        img = apply_red_lines_noir(img, settings, cadre_mm=args.cadre, trait_noir_mm=args.trait_noir_mm)
+        result = apply_mode1(img, mire, settings, bord_mire_mm=args.bord_mire, trait_noir_mm=args.trait_noir_mm)
+        out_name = args.output if args.output else (args.image.stem + "_HC_mod.png")
 
     out_dir  = args.output_dir if args.output_dir else args.image.parent
     out_path = out_dir / out_name
