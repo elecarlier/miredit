@@ -66,7 +66,7 @@ def apply_mode1(
 
     logger.info(f"Centre image dans canvas : {img_center}px  |  paste mire à x={mire_x}px")
 
-    mire_strip_full = Image.new("RGBA", (total_w, strip_h), (255, 255, 255, 255))
+    mire_strip_full = Image.new("RGBA", (total_w, strip_h), (0, 0, 0, 0))
     #mire_strip_full = Image.new("RGBA", (total_w, strip_h), (0, 0, 0, 0))
 
 # Recadrer la mire à sa propre taille (juste pour limiter la hauteur à strip_h)
@@ -77,7 +77,7 @@ def apply_mode1(
     mire_strip_full.paste(mire_cropped, (x_offset, 0), mire_cropped)  # masque alpha
     
     #result = Image.new("RGBA", (total_w, total_h), (0, 0, 0, 0))  # blanc opaque
-    result = Image.new("RGBA", (total_w, total_h), (255, 255, 255, 255))
+    result = Image.new("RGBA", (total_w, total_h), (0, 0, 0, 0))
     result.paste(mire_strip_full, (0, 0),            mire_strip_full)
     result.paste(img,             (margin, strip_h), img)
     result.paste(mire_strip_full, (0, strip_h + h),  mire_strip_full)
