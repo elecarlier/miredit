@@ -57,7 +57,7 @@ def run(args):
 
     logger.info(f"Mode {args.mode}")
     if args.mode == 1:
-        result = apply_mode1(img, mire, settings, bord_mire_mm=args.bord_mire, trait_noir_mm=args.trait_noir_mm)
+        result = apply_mode1(img, mire, settings, bord_mire_mm=args.bord_mire)
         out_name = args.output if args.output else (args.image.stem + "_HC.png")
     elif args.mode == 2:
         result = apply_mode2(img, settings, cadre_mm=args.cadre, trait_noir_mm=args.trait_noir_mm)
