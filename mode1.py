@@ -33,7 +33,6 @@ def apply_mode1(
     mire: Image.Image,
     settings: PrintSettings,
     bord_mire_mm: float,
-    trait_noir_mm: float = 0.0,
 ) -> Image.Image:
     """
     Mode 1 — plaque physique plus grande que l'image lenticulaire.
@@ -42,15 +41,22 @@ def apply_mode1(
     mire = mire.convert("RGBA")
 
     w, h = img.size
-    strip_h = settings.mm_to_px_v(bord_mire_mm)
-    margin = settings.mm_to_px_h(3.0)
+    strip_h = int(round(settings.mm_to_px_v(bord_mire_mm)))
+    margin = int(round(settings.mm_to_px_h(3.0)))
 
     total_w = w + 2 * margin
     total_h = strip_h + h + strip_h
 
+    logger.debug(f"img.size={img.size}  w={w}  h={h}")
+    logger.debug(f"strip_h={strip_h}  margin={margin}")
+    logger.debug(f"total_w={total_w}  total_h={total_h}")
+    logger.debug(f"Vérification : 2*strip_h + h = {2*strip_h + h} == total_h={total_h} ? {2*strip_h + h == total_h}")
+    logger.debug(f"Mire haute : y=0 → {strip_h-1}")
+    logger.debug(f"Image      : y={strip_h} → {strip_h + h - 1}")
+    logger.debug(f"Mire basse : y={strip_h + h} → {strip_h + h + strip_h - 1}")
+    logger.debug(f"Dernier px : {strip_h + h + strip_h - 1} == total_h-1={total_h-1} ? {strip_h + h + strip_h - 1 == total_h - 1}")
 
-
-    logger.debug(f"Bande mire : {strip_h}px  |  marge : {margin}px  |  canvas : {total_w}x{total_h}px")
+    logger.info(f"Bande mire : {strip_h}px  |  marge : {margin}px  |  canvas : {total_w}x{total_h}px")
 
     mire_strip = _crop_mire_centered(mire, total_w, strip_h)
     logger.debug(f"Mire recadrée : {mire_strip.size}")
@@ -58,10 +64,10 @@ def apply_mode1(
     img_center = margin + w // 2          # centre de l'image dans le canvas
     mire_x     = img_center - mire_strip.width // 2
 
-    logger.debug(f"Centre image dans canvas : {img_center}px  |  paste mire à x={mire_x}px")
+    logger.info(f"Centre image dans canvas : {img_center}px  |  paste mire à x={mire_x}px")
 
-
-    mire_strip_full = Image.new("RGBA", (total_w, strip_h), (0, 0, 0, 0))
+    mire_strip_full = Image.new("RGBA", (total_w, strip_h), (255, 255, 255, 255))
+    #mire_strip_full = Image.new("RGBA", (total_w, strip_h), (0, 0, 0, 0))
 
 # Recadrer la mire à sa propre taille (juste pour limiter la hauteur à strip_h)
     mire_cropped = _crop_mire_centered(mire, mire.width, strip_h)
@@ -69,21 +75,22 @@ def apply_mode1(
     # Coller la mire centrée horizontalement
     x_offset = (total_w - mire_cropped.width) // 2
     mire_strip_full.paste(mire_cropped, (x_offset, 0), mire_cropped)  # masque alpha
-
-    result = Image.new("RGBA", (total_w, total_h), (0, 0, 0, 0))
+    
+    #result = Image.new("RGBA", (total_w, total_h), (0, 0, 0, 0))  # blanc opaque
+    result = Image.new("RGBA", (total_w, total_h), (255, 255, 255, 255))
     result.paste(mire_strip_full, (0, 0),            mire_strip_full)
     result.paste(img,             (margin, strip_h), img)
     result.paste(mire_strip_full, (0, strip_h + h),  mire_strip_full)
-    logger.debug("Bandes mire et image collées")
+    logger.info("Bandes mire et image collées")
 
     draw = ImageDraw.Draw(result)
     black = (0, 0, 0, 255)
     red = (255, 0, 0, 255)
 
-    x1 = margin - settings.mm_to_px_h(2.0)
-    w1 = settings.line_frac_px(1 / 4)
-    x2 = margin - settings.mm_to_px_h(1.0)
-    w2 = settings.line_frac_px(1 / 6)
+    x1 = margin - int(round(settings.mm_to_px_h(2.0)))
+    w1 = int(round(settings.line_frac_px(1 / 4)))
+    x2 = margin - int(round(settings.mm_to_px_h(1.0)))
+    w2 = int(round(settings.line_frac_px(1 / 6)))
 
     logger.debug(f"Traits repérage — x1={x1} w1={w1}px  |  x2={x2} w2={w2}px")
 
@@ -92,11 +99,6 @@ def apply_mode1(
     draw.rectangle([x2,                0, x2 + w2 - 1,           total_h - 1], fill=black)
     draw.rectangle([total_w - x1 - w1, 0, total_w - x1 - 1,      total_h - 1], fill=black)
     draw.rectangle([total_w - x2 - w2, 0, total_w - x2 - 1,      total_h - 1], fill=black)
-    logger.debug("Traits de repérage dessinés")
-
-    if trait_noir_mm > 0:
-        bord_px = settings.mm_to_px_v(trait_noir_mm)
-        draw.rectangle([0, strip_h - bord_px, total_w - 1, strip_h - 1],         fill=black)
-        draw.rectangle([0, strip_h + h,       total_w - 1, strip_h + h + bord_px - 1], fill=black)
+    logger.info("Traits de repérage dessinés")
 
     return result
