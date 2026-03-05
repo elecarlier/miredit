@@ -10,11 +10,12 @@
 
 ```
 miredit/
-├── main.py          # Point d'entrée, orchestration
-├── cli.py           # Définition des arguments CLI (argparse)
-├── models.py        # Dataclass PrintSettings + conversions px/mm
-├── mode1.py         # Mode 1 : ajout de bandes mire + traits de repérage
-├── mode2.py         # Mode 2 : modification du cadre Lenticular Suite
+├── main.py              # Point d'entrée, orchestration
+├── cli.py               # Définition des arguments CLI (argparse)
+├── models.py            # Dataclass PrintSettings + conversions px/mm
+├── mode1.py             # Mode 1 : ajout de bandes mire + traits de repérage
+├── mode2.py             # Mode 2 & 3 : modification du cadre Lenticular Suite
+├── center_padding.py    # Pré-traitement : centrage de l'image si nécessaire
 └── mires_templates/
     └── {HDPI}x{VDPI}/
         └── {LPI}.png
@@ -66,6 +67,19 @@ L'image d'entrée possède un cadre Lenticular Suite. La plaque d'impression ét
 ### Pour passer les traits de rouge à noir
 
 Dans `mode1.py`, remplacer `fill=red` par `fill=black` sur les 4 `draw.rectangle(...)`.
+
+---
+
+## Mode 3 — Combiné (plaque plus grande + modification du cadre)
+
+Mode 3 enchaîne les deux opérations :
+
+1. Applique les modifications de Mode 2 sur le cadre existant (`apply_red_lines_noir`)
+2. Applique ensuite Mode 1 : ajout des bandes de mire et des traits de repérage latéraux
+
+**Arguments utilisés :** tous ceux de Mode 1 (`--bord_mire`, `--trait_noir_mm`) et Mode 2 (`--cadre`, `--trait_noir_mm`).
+
+**Fichier de sortie :** `<image>_HC_mod.png` par défaut.
 
 ---
 

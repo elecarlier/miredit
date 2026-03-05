@@ -47,15 +47,6 @@ def apply_mode1(
     total_w = w + 2 * margin
     total_h = strip_h + h + strip_h
 
-    logger.debug(f"img.size={img.size}  w={w}  h={h}")
-    logger.debug(f"strip_h={strip_h}  margin={margin}")
-    logger.debug(f"total_w={total_w}  total_h={total_h}")
-    logger.debug(f"Vérification : 2*strip_h + h = {2*strip_h + h} == total_h={total_h} ? {2*strip_h + h == total_h}")
-    logger.debug(f"Mire haute : y=0 → {strip_h-1}")
-    logger.debug(f"Image      : y={strip_h} → {strip_h + h - 1}")
-    logger.debug(f"Mire basse : y={strip_h + h} → {strip_h + h + strip_h - 1}")
-    logger.debug(f"Dernier px : {strip_h + h + strip_h - 1} == total_h-1={total_h-1} ? {strip_h + h + strip_h - 1 == total_h - 1}")
-
     logger.info(f"Bande mire : {strip_h}px  |  marge : {margin}px  |  canvas : {total_w}x{total_h}px")
 
     mire_strip = _crop_mire_centered(mire, total_w, strip_h)
@@ -69,14 +60,14 @@ def apply_mode1(
     mire_strip_full = Image.new("RGBA", (total_w, strip_h), (0, 0, 0, 0))
     #mire_strip_full = Image.new("RGBA", (total_w, strip_h), (0, 0, 0, 0))
 
-# Recadrer la mire à sa propre taille (juste pour limiter la hauteur à strip_h)
+    # Recadrer la mire à sa propre taille (juste pour limiter la hauteur à strip_h)
     mire_cropped = _crop_mire_centered(mire, mire.width, strip_h)
 
     # Coller la mire centrée horizontalement
     x_offset = (total_w - mire_cropped.width) // 2
     mire_strip_full.paste(mire_cropped, (x_offset, 0), mire_cropped)  # masque alpha
     
-    #result = Image.new("RGBA", (total_w, total_h), (0, 0, 0, 0))  # blanc opaque
+
     result = Image.new("RGBA", (total_w, total_h), (0, 0, 0, 0))
     result.paste(mire_strip_full, (0, 0),            mire_strip_full)
     result.paste(img,             (margin, strip_h), img)
