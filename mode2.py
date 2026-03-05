@@ -233,11 +233,11 @@ def apply_mode2(
     arr = np.array(img.convert("RGBA"))
     white = (255, 255, 255, 255)
 
-    x_start, x_end = lines["black_left"][1]
+    x_start, x_end = lines["black_left"][2]
     arr[:, x_start:x_end + 1] = white
     logger.debug(f"Bord gauche : colonne x={x_start}–{x_end} mise en blanc")
 
-    x_start, x_end = lines["black_right"][-2]
+    x_start, x_end = lines["black_right"][-3]
     arr[:, x_start:x_end + 1] = white
     logger.debug(f"Bord droit  : colonne x={x_start}–{x_end} mise en blanc")
 
