@@ -3,10 +3,12 @@
 ![Python](https://img.shields.io/badge/python-3.10+-blue?logo=python&logoColor=white)
 ![NumPy](https://img.shields.io/badge/numpy-1.24+-013243?logo=numpy&logoColor=white)
 ![Pillow](https://img.shields.io/badge/pillow-10+-hotpink?logo=python&logoColor=white)
-![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20windows-lightgrey)
+![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)
 ![License](https://img.shields.io/badge/license-CC%20BY--NC%204.0-green)
 
 **CLI image processing tool for lenticular print preparation.**
+
+> Vous cherchez un guide d'utilisation en français, sans jargon technique ? → [GUIDE.md](GUIDE.md)
 
 Lenticular printing requires precise registration marks and mire (test chart) strips so that the print aligns exactly with the lenticular lens sheet. `miredit` automates the pixel-level modifications needed on images exported from [Lenticular Suite](https://www.lenticularsuite.com/), adapting them for three plate configurations.
 
