@@ -231,7 +231,7 @@ def apply_mode2(
     """
     lines = detect_frame_lines(img, settings, cadre_mm)
     arr = np.array(img.convert("RGBA"))
-    white = (255, 255, 255, 255)
+    white = (255, 255, 255, 255) #commentaire c'est du blanc
 
     x_start, x_end = lines["black_left"][2]
     arr[:, x_start:x_end + 1] = white
