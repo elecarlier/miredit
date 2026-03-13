@@ -12,13 +12,9 @@ from center_padding import center_padding
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-<<<<<<< HEAD
 
 TEMPLATES_DIR = Path(__file__).parent.parent / "mires_templates" 
 
-=======
-TEMPLATES_DIR = Path(__file__).parent.parent / "mires_templates"
->>>>>>> 4a83b6d (utilise mires_templates partagé à la racine du monorepo)
 
 
 def find_mire(lpi: float, hdpi: int, vdpi: int) -> Path:
@@ -68,7 +64,7 @@ def run(args):
         out_name = args.output if args.output else (args.image.stem + "_mod.png")
     elif args.mode == 3:
         img = apply_red_lines_noir(img, settings, cadre_mm=args.cadre, trait_noir_mm=args.trait_noir_mm)
-        result = apply_mode1(img, mire, settings, bord_mire_mm=args.bord_mire, trait_noir_mm=args.trait_noir_mm)
+        result = apply_mode1(img, mire, settings, bord_mire_mm=args.bord_mire)
         out_name = args.output if args.output else (args.image.stem + "_HC_mod.png")
 
     out_dir  = args.output_dir if args.output_dir else args.image.parent
